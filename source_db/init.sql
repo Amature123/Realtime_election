@@ -10,9 +10,9 @@ candidate(
 
 CREATE TABLE IF NOT EXISTS
 voter(
-    voter_id INTEGER PRIMARY KEY ,
+    voter_id VARCHAR(255) PRIMARY KEY ,
     voter_name VARCHAR(255) ,
-    age INTEGER ,
+    age VARCHAR(255) ,
     gender VARCHAR(255) ,
     nationality VARCHAR(255) ,
     registion_number VARCHAR(255),
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS
 vote(
     voter_id VARCHAR(255) UNIQUE ,
     candidate_id VARCHAR(255) ,
-    vote_date DATE ,
+    vote_date TIMESTAMP DEFAULT ,
     vote int DEFAULT 0,
     PRIMARY KEY(voter_id, candidate_id)
 );

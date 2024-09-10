@@ -39,13 +39,13 @@ def generate_voter_data(voter_number):
         user_data = response.json()['results'][0]
         result = {
             'voter_id': user_data['login']['uuid'],
-            'voter_name': user_data['name']['first'] + ' ' + user_data['name']['last'],
+            'voter_name': f"{user_data['name']['first']}{user_data['name']['last']}",
             'age': user_data['dob']['age'],
             'gender': user_data['gender'],
             'nationality': user_data['nat'],
             'registion_number': user_data['login']['username'],
             'address':{
-                'street':user_data['location']['street']['number'] + ' ' + user_data['location']['street']['name'],
+                'street':f"{user_data['location']['street']['number']} {user_data['location']['street']['name']}",
                 'city':user_data['location']['city'],
                 'state':user_data['location']['state'],
                 'country':user_data['location']['country'],
@@ -72,14 +72,14 @@ def delivery_report(err, msg):
   else:
     logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}")
 
-def produce_data_to_kafka(producer , topic, data):
-  logger.info(f"Producing record: {data}")
-  producer.produce(topic=topic, 
-                   key=str(data['voter_id']), 
-                   value=json.dumps(data,default=json_serializer).encode('utf-8'), 
-                   on_delivery=delivery_report)
-                   
-  producer.flush()
+def produce_data_to_kafka(producer , topic, data,inatorial):
+    logger.info(f"Producing record: {data}")
+    producer.produce(topic=topic, 
+                    key=str(data['voter_id']), 
+                    value=json.dumps(data,default=json_serializer).encode('utf-8'), 
+                    on_delivery=delivery_report)
+    print(f'Producing voter {inatorial}, data{data}')
+    producer.flush()
 
 
 ### Main code 
@@ -116,7 +116,7 @@ try:
     for i in range(100):
         voter_data = generate_voter_data(i)
         cur.execute(
-            """INSERT INTO voter (voter_id, voter_name, age, gender, nationality, registration_number, address_street,address_city, address_state, address_country, address_postal_code, voter_email, voter_phone, pic_url) 
+            """INSERT INTO voter (voter_id, voter_name, age, gender, nationality, registion_number, address_street,address_city, address_state, address_country, address_postal_code, email, phone_number, picture_url) 
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
             (
                 voter_data['voter_id'], 
@@ -124,7 +124,7 @@ try:
                 voter_data['age'], 
                 voter_data['gender'], 
                 voter_data['nationality'], 
-                voter_data['registration_number'], 
+                voter_data['registion_number'], 
                 voter_data['address']['street'],
                 voter_data['address']['city'], 
                 voter_data['address']['state'], 
@@ -136,7 +136,7 @@ try:
             )
         )
         conn.commit()
-        produce_data_to_kafka(producer,'voter',voter_data)
+        produce_data_to_kafka(producer,'voter',voter_data,i)
         time.sleep(1)
 
 except Exception as e:
